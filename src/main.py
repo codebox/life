@@ -6,12 +6,13 @@ environment = Environment2DGrid(10)
 agents = [AgentBasic(i) for i in range(3)]
 
 environment.populate(agents)
-print(environment)
-# for t in range(10):
-#     shuffle(agents)
-#     for agent in agents:
-#         view = environment.get_view(agent)
-#         action = agent.act(view)
-#         environment.update(agent, action)
-#         print(environment)
+
+for t in range(10):
+    print(environment)
+    shuffle(agents)
+    for agent in agents:
+        view = environment.get_view(agent)
+        action = agent.act(view)
+        environment.update(agent, action)
+        # print(environment)
 
