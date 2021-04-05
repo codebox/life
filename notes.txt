@@ -1,0 +1,12 @@
+environment
+[agent]
+
+loop:
+    agents.shuffle.forEach(agent ->
+        // 'environmentView' contains the information about the environment that is visible to the agent
+        environmentView = environment.getView(agent)
+        action = agent.act(environmentView)
+        // both environment and agent are updated
+        environment.update(agent, action)
+    )
+
