@@ -19,15 +19,16 @@ window.onload = () => {
         .then(setup)
         .catch(err => console.log(err));
 
+    function getNewState(){
+        fetch('/state.json')
+            .then(response => response.json())
+            .then(render)
+            .catch(err => console.log(err));
+    }
     function setup(metadata) {
         uiSetup(metadata);
-        setInterval(() => {
-            "use strict";
-            fetch('/state.json')
-                .then(response => response.json())
-                .then(render)
-                .catch(err => console.log(err));
-        }, 1000);
+        setInterval(getNewState, 1000);
+        getNewState();
     }
 
 };
