@@ -1,0 +1,16 @@
+#grid {
+    display: grid;
+    grid-template-columns: repeat(3, 50px);
+    grid-template-rows: repeat(3, 50px);
+    grid-gap: 1px;
+    background-color: #fff;
+    color: #444;
+}
+
+#grid div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #444;
+    color: #fff;
+}

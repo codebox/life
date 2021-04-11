@@ -38,8 +38,6 @@ class Environment2DGrid():
                 view_row.append(self.__get_grid_item(x,y))
             view.append(view_row)
 
-        print(self.__grid_to_string(view))
-        print()
         return view
 
     def update(self, agent, action):
