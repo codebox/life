@@ -1,4 +1,5 @@
 from random import randrange
+import json
 
 GRID_WALL = 'W'
 GRID_FREE = ' '
@@ -48,6 +49,18 @@ class Environment2DGrid():
         for row in grid:
             rows.append(','.join(map(lambda c: str(c) if c else '_', row)))
         return '\n'.join(rows)
+
+    def save_metadata(self):
+        with open('public/metadata.json', 'w') as f:
+            json.dump({'h':self.size, 'w':self.size}, f)
+
+    def save(self):
+        rows = []
+        for row in self.grid:
+            rows.append(list(map(lambda c: str(c) if c else ' ', row)))
+
+        with open('public/state.json', 'w') as f:
+            json.dump(rows, f)
 
     def __str__(self):
         return self.__grid_to_string(self.grid)

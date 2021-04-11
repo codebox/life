@@ -2,3 +2,5 @@
 *.iml
 .idea
 ENV
+public/state.json
+public/metadata.json

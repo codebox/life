@@ -1,7 +1,8 @@
 window.onload = () => {
     "use strict";
     function uiSetup(metadata) {
-
+        grid.style.gridTemplateColumns = `repeat(${metadata.w}, 20px)`;
+        grid.style.gridTemplateRows = `repeat(${metadata.h}, 20px)`;
     }
 
     const grid = document.getElementById('grid');
