@@ -5,6 +5,11 @@ GRID_WALL = 'W'
 GRID_FREE = ' '
 GRID_AGENT = 'A'
 
+ACTION_MOVE_UP = 'U'
+ACTION_MOVE_DOWN = 'D'
+ACTION_MOVE_LEFT = 'L'
+ACTION_MOVE_RIGHT = 'R'
+
 class Environment2DGrid():
     def __init__(self, size):
         self.size = size
@@ -41,8 +46,22 @@ class Environment2DGrid():
 
         return view
 
+    def __move_agent(self, agent, x, y):
+        self.grid[x][y] = agent
+        agent.position = x, y
+
     def update(self, agent, action):
-        pass
+        x_delta = 1 if action == ACTION_MOVE_RIGHT else -1 if action == ACTION_MOVE_LEFT else 0
+        y_delta = 1 if action == ACTION_MOVE_DOWN else -1 if action == ACTION_MOVE_UP else 0
+        old_x, old_y = agent.position
+        new_x = old_x + x_delta
+        new_y = old_y + y_delta
+        if self.__is_vacant(new_x, new_y):
+            self.grid[old_x][old_y] = None
+            self.__move_agent(agent, new_x, new_y)
+
+    def __is_vacant(self, x, y):
+        return self.__get_grid_item(x, y) == GRID_FREE
 
     def __grid_to_string(self, grid):
         rows = []
