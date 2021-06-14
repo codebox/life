@@ -1,5 +1,9 @@
-environment
-[agent]
+To run back-end:
+    source ENV/bin/activate
+    python src/main.py
+
+To run web server:
+    ./web.sh
 
 loop:
     agents.shuffle.forEach(agent ->
@@ -9,4 +13,3 @@ loop:
         // both environment and agent are updated
         environment.update(agent, action)
     )
-

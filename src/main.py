@@ -1,12 +1,12 @@
 from environment_2d_grid import Environment2DGrid
-from agent_basic import AgentBasic
+from agent_random import AgentRandom
 from random import shuffle
 from time import sleep
 
 SIZE=20
 AGENTS=5
 environment = Environment2DGrid(SIZE)
-agents = [AgentBasic(i) for i in range(AGENTS)]
+agents = [AgentRandom(i) for i in range(AGENTS)]
 environment.save_metadata()
 environment.populate(agents)
 

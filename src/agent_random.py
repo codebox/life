@@ -1,6 +1,6 @@
 import random
 
-class AgentBasic:
+class AgentRandom:
     def __init__(self, id):
         self.id = id
         self.position = None
