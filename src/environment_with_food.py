@@ -20,4 +20,4 @@ class EnvironmentWithFood(Environment2DGrid):
     def tick(self):
         for col in self.state['locations']:
             for cell in col:
-                cell['food'] = min(cell['food'] + 0.002, 1)
+                cell['food'] = min(cell['food'] + 0.003 * random(), 1)
