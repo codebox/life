@@ -1,12 +1,10 @@
 import random
+from agent import Agent
 
-class AgentRandom:
+class AgentRandom(Agent):
     def __init__(self, id):
-        self.id = id
-        self.position = None
+        super().__init__(id)
 
-    def act(self, view):
+    def act(self, state_view):
         return random.choice(['L','R','U','D'])
 
-    def __str__(self):
-        return str(self.id)
