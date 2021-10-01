@@ -21,5 +21,9 @@ class Environment(ABC):
     def save(self):
         return
 
+    @abstractmethod
+    def tick(self):
+        return
+
     def __str__(self):
         return str(self.state)

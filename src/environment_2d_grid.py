@@ -1,4 +1,4 @@
-from random import randrange
+from random import randrange, random
 import json
 from environment import Environment
 
@@ -15,14 +15,14 @@ class Environment2DGrid(Environment):
     def __init__(self, size):
         super().__init__({
             'agents': {},
-            'locations': [[None] * size for _ in range(size)]
+            'locations': [[{'food': random(), 'agent': None} for _2 in range(size)] for _1 in range(size)]
         })
         self.size = size
 
     def populate(self, agents):
         for agent in agents:
             agent_id = agent.id
-            agent_state = {}
+            agent_state = {'energy': 0}
             self.state['agents'][agent_id] = agent_state
             while True:
                 x = randrange(self.size)
@@ -35,7 +35,7 @@ class Environment2DGrid(Environment):
         if x < 0 or x >= self.size or y < 0 or y >= self.size:
             return GRID_WALL
 
-        if self.state['locations'][x][y]:
+        if self.state['locations'][x][y]['agent']:
             return GRID_AGENT
         else:
             return GRID_FREE
@@ -56,10 +56,13 @@ class Environment2DGrid(Environment):
         current_position = self.state['agents'][agent.id].get('position')
         if current_position:
             current_x, current_y = current_position
-            self.state['locations'][current_x][current_y] = None
+            self.state['locations'][current_x][current_y]['agent'] = None
 
-        self.state['locations'][new_x][new_y] = agent.id
+        food = self.state['locations'][new_x][new_y]['food']
+        self.state['locations'][new_x][new_y]['food'] = 0
+        self.state['locations'][new_x][new_y]['agent'] = agent.id
         self.state['agents'][agent.id]['position'] = new_x, new_y
+        self.state['agents'][agent.id]['energy'] += food
 
     def update(self, agent, action):
         x_delta = 1 if action == ACTION_MOVE_RIGHT else -1 if action == ACTION_MOVE_LEFT else 0
@@ -83,13 +86,14 @@ class Environment2DGrid(Environment):
         with open('public/metadata.json', 'w') as f:
             json.dump({'h':self.size, 'w':self.size}, f)
 
-    def save(self):
-        rows = []
-        for row in self.state['locations']:
-            rows.append(list(map(lambda c: str(c) if c else ' ', row)))
+    def tick(self):
+        for col in self.state['locations']:
+            for cell in col:
+                cell['food'] = min(cell['food'] + 0.002, 1)
 
+    def save(self):
         with open('public/state.json', 'w') as f:
-            json.dump(rows, f)
+            json.dump(self.state, f)
 
     def __str__(self):
         return self._grid_to_string(self.grid)

@@ -8,8 +8,8 @@ window.onload = () => {
     const grid = document.getElementById('grid');
     function render(data) {
         const html = [];
-        data.forEach(row => {
-            html.push(row.map(cell => `<div>${cell}</div>`).join(''));
+        data.locations.forEach(row => {
+            html.push(row.map(cell => `<div style="background-color: rgba(0,255,0,${cell.food})">${cell.agent || ''}</div>`).join(''));
         });
         grid.innerHTML = html.join('\n');
     }

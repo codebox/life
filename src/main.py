@@ -17,5 +17,6 @@ while True:
         action = agent.act(view)
         environment.update(agent, action)
     environment.save()
-    sleep(1)
+    environment.tick()
+    sleep(0.3)
 
