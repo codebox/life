@@ -1,12 +1,13 @@
-from environment_2d_grid import Environment2DGrid
-from agent_random import AgentRandom
+from environment_with_food import EnvironmentWithFood
+# from agent_random import AgentRandom
+from agent_hungry import AgentHungry
 from random import shuffle
 from time import sleep
 
 SIZE=20
 AGENTS=5
-environment = Environment2DGrid(SIZE)
-agents = [AgentRandom(i) for i in range(AGENTS)]
+environment = EnvironmentWithFood(SIZE)
+agents = [AgentHungry(i) for i in range(AGENTS)]
 environment.save_metadata()
 environment.populate(agents)
 
@@ -16,7 +17,8 @@ while True:
         view = environment.get_view(agent)
         action = agent.act(view)
         environment.update(agent, action)
+
     environment.save()
     environment.tick()
-    sleep(0.3)
+    sleep(1)
 

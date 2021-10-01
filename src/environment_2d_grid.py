@@ -1,10 +1,7 @@
 from random import randrange, random
 import json
 from environment import Environment
-
-GRID_WALL = 'W'
-GRID_FREE = ' '
-GRID_AGENT = 'A'
+from abc import abstractmethod
 
 ACTION_MOVE_UP = 'U'
 ACTION_MOVE_DOWN = 'D'
@@ -15,15 +12,26 @@ class Environment2DGrid(Environment):
     def __init__(self, size):
         super().__init__({
             'agents': {},
-            'locations': [[{'food': random(), 'agent': None} for _2 in range(size)] for _1 in range(size)]
+            'locations': [[self._init_location_state({'agent': None}) for _2 in range(size)] for _1 in range(size)]
         })
         self.size = size
+
+    @abstractmethod
+    def _init_agent_state(self, agent):
+        return
+
+    @abstractmethod
+    def _update_state_on_agent_move(self, agent):
+        return
+
+    @abstractmethod
+    def _init_location_state(self, location):
+        return
 
     def populate(self, agents):
         for agent in agents:
             agent_id = agent.id
-            agent_state = {'energy': 0}
-            self.state['agents'][agent_id] = agent_state
+            self.state['agents'][agent_id] = self._init_agent_state({})
             while True:
                 x = randrange(self.size)
                 y = randrange(self.size)
@@ -32,23 +40,17 @@ class Environment2DGrid(Environment):
                     break
 
     def _get_grid_item(self, x, y):
-        if x < 0 or x >= self.size or y < 0 or y >= self.size:
-            return GRID_WALL
-
-        if self.state['locations'][x][y]['agent']:
-            return GRID_AGENT
-        else:
-            return GRID_FREE
+        if x >= 0 and x < self.size and y >=0 and y < self.size:
+            return self.state['locations'][x][y]
 
     def _get_visible_state(self, agent):
         view_radius = 1
         agent_x, agent_y = self.state['agents'][agent.id]['position']
-        view = []
+        view = {}
         for x in range(agent_x - view_radius, agent_x + view_radius + 1):
-            view_row = []
             for y in range(agent_y - view_radius, agent_y + view_radius + 1):
-                view_row.append(self._get_grid_item(x,y))
-            view.append(view_row)
+                key = '{} {}'.format(x - agent_x, y - agent_y)
+                view[key] = self._get_grid_item(x,y)
 
         return view
 
@@ -58,11 +60,11 @@ class Environment2DGrid(Environment):
             current_x, current_y = current_position
             self.state['locations'][current_x][current_y]['agent'] = None
 
-        food = self.state['locations'][new_x][new_y]['food']
-        self.state['locations'][new_x][new_y]['food'] = 0
-        self.state['locations'][new_x][new_y]['agent'] = agent.id
-        self.state['agents'][agent.id]['position'] = new_x, new_y
-        self.state['agents'][agent.id]['energy'] += food
+        new_location = self.state['locations'][new_x][new_y]
+        new_location['agent'] = agent.id
+        agent_state = self.state['agents'][agent.id]
+        agent_state['position'] = new_x, new_y
+        self._update_state_on_agent_move(agent_state, new_location)
 
     def update(self, agent, action):
         x_delta = 1 if action == ACTION_MOVE_RIGHT else -1 if action == ACTION_MOVE_LEFT else 0
@@ -74,7 +76,8 @@ class Environment2DGrid(Environment):
             self._move_agent(agent, new_x, new_y)
 
     def _is_vacant(self, x, y):
-        return self._get_grid_item(x, y) == GRID_FREE
+        location = self._get_grid_item(x, y)
+        return location and not location['agent']
 
     def _grid_to_string(self, grid):
         rows = []
@@ -86,10 +89,9 @@ class Environment2DGrid(Environment):
         with open('public/metadata.json', 'w') as f:
             json.dump({'h':self.size, 'w':self.size}, f)
 
+    @abstractmethod
     def tick(self):
-        for col in self.state['locations']:
-            for cell in col:
-                cell['food'] = min(cell['food'] + 0.002, 1)
+        return
 
     def save(self):
         with open('public/state.json', 'w') as f:

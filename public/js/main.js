@@ -9,7 +9,7 @@ window.onload = () => {
     function render(data) {
         const html = [];
         data.locations.forEach(row => {
-            html.push(row.map(cell => `<div style="background-color: rgba(0,255,0,${cell.food})">${cell.agent || ''}</div>`).join(''));
+            html.push(row.map(cell => `<div style="background-color: rgba(0,255,0,${cell.food})">${cell.agent === null ? '' : cell.agent}</div>`).join(''));
         });
         grid.innerHTML = html.join('\n');
     }
