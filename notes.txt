@@ -7,21 +7,23 @@ To run web server:
 
 loop:
     agents.shuffle.forEach(agent ->
-        // 'environmentView' contains the information about the environment that is visible to the agent
-        environmentView = environment.getView(agent)
-        action = agent.act(environmentView)
-        // both environment and agent are updated
-        environment.update(agent, action)
+        if agent.living
+            // 'environmentView' contains the information about the environment that is visible to the agent
+            environmentView = environment.getView(agent)
+            action = agent.act(environmentView)
+            // both environment and agent are updated
+            environment.update(agent, action)
     )
 
 
 agent
-    .act(environment_view) -> string        (action string, the agent must ensure it returns an action understood by the environment)
+    .act(environment_view, actions) -> string        (action string, the agent must ensure it returns one of the valid actions specified)
 
 environment
-    .get_view(agent) -> environment_view    (key/value pairs)
-    .update(agent, action) -> None          (nothing returned, the effects of the action are on the agents state which is stored in the environment and probably visible to it via the environment_view)
+    .get_view(agent) -> environment_view, actions    (key/value pairs, list of valid actions_)
+    .update(agent, action) -> None                   (nothing returned, the effects of the action are on the agents state which is stored in the environment and probably visible to it via the environment_view)
     .save()
 
 environment_view
     .get('key') -> object                   (agents need to know what keys exist in their environments, analogous to the senses that animals evolve to understand their environment)
+

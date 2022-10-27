@@ -1,21 +1,19 @@
-from environment_with_food import EnvironmentWithFood
-# from agent_random import AgentRandom
-from agent_hungry import AgentHungry
-from random import shuffle
 from time import sleep
+from population import Population
+from environment import Environment2D
+from agent import AgentRandom, AgentMaxFood
 
-SIZE=20
-AGENTS=5
-environment = EnvironmentWithFood(SIZE)
-agents = [AgentHungry(i) for i in range(AGENTS)]
+GRID_SIZE = 30
+POPULATION_SIZE = 10
+population = Population(POPULATION_SIZE)
+environment = Environment2D(GRID_SIZE, GRID_SIZE, population)
+actions = environment.get_actions()
 environment.save_metadata()
-environment.populate(agents)
 
 while True:
-    shuffle(agents)
-    for agent in agents:
+    for agent in population.get_all():
         view = environment.get_view(agent)
-        action = agent.act(view)
+        action = agent.act(view, actions)
         environment.update(agent, action)
 
     environment.save()
