@@ -1,5 +1,5 @@
 from random import sample
-from agent import AgentRandom, AgentMaxFood
+from agent import AgentRandom, AgentMaxFood, AgentNetwork
 
 class Population:
     def __init__(self, count):
@@ -8,8 +8,12 @@ class Population:
         for _ in range(count):
             self.add()
 
-    def add(self):
-        new_agent = AgentMaxFood(self.next_id)
+    def add(self, parent = None):
+        if parent:
+            new_agent = AgentNetwork(self.next_id, parent.network.copy())
+        else:
+            new_agent = AgentNetwork(self.next_id)
+
         self.agents.append(new_agent)
         self.next_id += 1
         return new_agent

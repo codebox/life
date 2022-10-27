@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from random import choice
 from environment import *
+from network import Network
+import numpy as np
 
 class Agent(ABC):
     def __init__(self, id):
@@ -13,12 +15,14 @@ class Agent(ABC):
     def __str__(self):
         return str(self.id)
 
+
 class AgentRandom(Agent):
     def __init__(self, id):
         super().__init__(id)
 
     def act(self, state_view, actions):
         return choice(actions)
+
 
 class AgentMaxFood(Agent):
     def __init__(self, id):
@@ -36,3 +40,14 @@ class AgentMaxFood(Agent):
             VIEW_FOOD_WEST: ACTION_MOVE_WEST,
             VIEW_FOOD_EAST: ACTION_MOVE_EAST
         }[max_food]
+
+
+class AgentNetwork(Agent):
+    def __init__(self, id, network=Network(9, 10, 6)):
+        super().__init__(id)
+        self.network = network
+
+    def act(self, state_view, actions):
+        l = list(state_view.values())
+        r = np.argmax(self.network.calc([l]))
+        return actions[r]
