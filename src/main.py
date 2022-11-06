@@ -9,7 +9,7 @@ POPULATION_SIZE = 100
 MUTATION_FACTOR = 0.005
 population = Population(POPULATION_SIZE, MUTATION_FACTOR)
 environment = Environment2D(GRID_SIZE, GRID_SIZE, population)
-reaper = Reaper(0.2, environment)
+reaper = Reaper(0.5, environment)
 actions = environment.get_actions()
 environment.save_metadata()
 

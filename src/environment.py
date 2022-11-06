@@ -39,7 +39,8 @@ class Environment2D:
         } for x in range(width) for y in range(height)]
         self.state = {
             'locations': {loc['id']: loc for loc in locations},
-            'agent_data': {}
+            'agent_data': {},
+            'generation': 1
         }
         self.population = population
         for agent in population.get_all():
@@ -151,6 +152,7 @@ class Environment2D:
         self.t += 1
         if self.t % REPRODUCE_AFTER == 0:
             self.save()
+            self.state['generation'] += 1;
             reaper.reap(self.population)
             for agent in self.population.get_all():
                 while True:

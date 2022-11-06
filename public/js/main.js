@@ -1,7 +1,8 @@
 window.onload = () => {
     "use strict";
 
-    const canvas = document.getElementById('grid'),
+    const elStatus = document.getElementById('status'),
+        canvas = document.getElementById('grid'),
         ctx = canvas.getContext('2d'),
         canvasWidth = canvas.width,
         canvasHeight = canvas.height;
@@ -32,6 +33,7 @@ window.onload = () => {
         for (let location of Object.values(data.locations)) {
             drawLocation(location);
         }
+        elStatus.innerHTML = `Generation ${data.generation}`;
     }
 
     fetch('/metadata.json')
