@@ -18,12 +18,13 @@ VIEW_AGENT_WEST = 'AGENT_W'
 VIEW_AGENT_EAST = 'AGENT_E'
 VIEW_ENERGY = 'ENERGY'
 
-MAX_ENERGY = 20
+MAX_ENERGY = 200
 INITIAL_ENERGY = 1
 MOVE_ENERGY_COST = 0.3
-NO_MOVE_ENERGY_COST = 0.1
+NO_MOVE_ENERGY_COST = 0.5
 FOOD_REGROWTH_RATE = 0.03
-REPRODUCE_AFTER=10
+REPRODUCE_AFTER=100
+
 
 class Environment2D:
     def __init__(self, width, height, population):
@@ -125,7 +126,8 @@ class Environment2D:
         elif action == ACTION_MOVE_EAST:
             attempt_move(agent_current_x, agent_current_y, agent_current_x + 1, agent_current_y)
         elif action == ACTION_REPRODUCE:
-            self._copy_agent(agent)
+            # self._copy_agent(agent)
+            pass
         elif action == ACTION_STAY:
             attempt_stay(agent_current_x, agent_current_y)
         else:
@@ -142,19 +144,22 @@ class Environment2D:
         with open('public/metadata.json', 'w') as f:
             json.dump({'h': self.height, 'w': self.width}, f)
 
-    def tick(self):
+    def tick(self, reaper):
         for loc in self.state['locations'].values():
             loc['food'] = min(loc['food'] + FOOD_REGROWTH_RATE * random(), 1)
+
         self.t += 1
         if self.t % REPRODUCE_AFTER == 0:
-            all_agents = sorted(self.population.get_all(), key=lambda agent: self.state['agent_data'][agent.id]['energy'])
-            n = int(len(all_agents)/2)
-            weakest_half = all_agents[:n]
-            for weak_agent in weakest_half:
-                self._remove_agent(weak_agent)
-
-            for a in self.population.get_all():
-                self._copy_agent(a)
+            self.save()
+            reaper.reap(self.population)
+            for agent in self.population.get_all():
+                while True:
+                    x = randrange(self.width)
+                    y = randrange(self.height)
+                    if self._is_vacant(x, y):
+                        self._add_new_agent(agent, x, y)
+                        break
+            return True
 
     def _add_new_agent(self, agent, x, y):
         location = self._get_location(x, y)
@@ -168,25 +173,29 @@ class Environment2D:
         del self.state['agent_data'][agent.id]
 
     def _copy_agent(self, agent):
-        if self.state['agent_data'][agent.id]['energy'] <= INITIAL_ENERGY:
-            return
+        # if self.state['agent_data'][agent.id]['energy'] <= INITIAL_ENERGY:
+        #     return
 
-        location = self._get_location_of_agent(agent)
-        agent_x = location['x']
-        agent_y = location['y']
+        # location = self._get_location_of_agent(agent)
+        # agent_x = location['x']
+        # agent_y = location['y']
 
-        vacant_location_coords = [c for c in [
-            (agent_x, agent_y - 1),
-            (agent_x, agent_y + 1),
-            (agent_x - 1, agent_y),
-            (agent_x + 1, agent_y)] if self._is_vacant(c[0], c[1])
-                                  ]
-        if not vacant_location_coords:
-            return
-
-        child_location_coord = choice(vacant_location_coords)
-        child = self.population.add(agent)
-        self._add_new_agent(child, child_location_coord[0], child_location_coord[1])
+        # vacant_location_coords = [c for c in [
+        #     (agent_x, agent_y - 1),
+        #     (agent_x, agent_y + 1),
+        #     (agent_x - 1, agent_y),
+        #     (agent_x + 1, agent_y)] if self._is_vacant(c[0], c[1])
+        #                           ]
+        # if not vacant_location_coords:
+        #     return
+        #
+        # child_location_coord = choice(vacant_location_coords)
+        vacant_location_coords = ()
+        x = randrange(self.width)
+        y = randrange(self.height)
+        if self._is_vacant(x, y):
+            child = self.population.add(agent)
+            self._add_new_agent(child, x, y)
 
         self.state['agent_data'][agent.id]['energy'] -= INITIAL_ENERGY
 
@@ -210,7 +219,8 @@ class Environment2D:
                 VIEW_AGENT_NORTH, VIEW_AGENT_SOUTH, VIEW_AGENT_WEST, VIEW_AGENT_EAST, VIEW_ENERGY]
 
     def get_actions(self):
-        return [ACTION_MOVE_NORTH, ACTION_MOVE_SOUTH, ACTION_MOVE_WEST, ACTION_MOVE_EAST, ACTION_REPRODUCE, ACTION_STAY]
+        # return [ACTION_MOVE_NORTH, ACTION_MOVE_SOUTH, ACTION_MOVE_WEST, ACTION_MOVE_EAST, ACTION_REPRODUCE, ACTION_STAY]
+        return [ACTION_MOVE_NORTH, ACTION_MOVE_SOUTH, ACTION_MOVE_WEST, ACTION_MOVE_EAST]
 
     def __str__(self):
         return str(self.locations)

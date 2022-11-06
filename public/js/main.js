@@ -1,24 +1,37 @@
 window.onload = () => {
     "use strict";
+
+    const canvas = document.getElementById('grid'),
+        ctx = canvas.getContext('2d'),
+        canvasWidth = canvas.width,
+        canvasHeight = canvas.height;
+
+    let gridWidth, gridHeight, xFactor, yFactor;
     function uiSetup(metadata) {
-        grid.style.gridTemplateColumns = `repeat(${metadata.w}, 20px)`;
-        grid.style.gridTemplateRows = `repeat(${metadata.h}, 20px)`;
+        gridWidth = metadata.w;
+        gridHeight = metadata.h;
+        xFactor = canvasWidth / gridWidth;
+        yFactor = canvasHeight / gridHeight;
     }
 
-    const grid = document.getElementById('grid');
-    function render(data) {
-        const locations = [];
-        for (let location of Object.values(data.locations)) {
-            if (!locations[location.x]) {
-                locations[location.x] = [];
-            }
-            locations[location.x][location.y] = location;
+    function drawLocation(location) {
+        const x = location.x * xFactor,
+            y = location.y * yFactor;
+        ctx.fillStyle = `rgba(0,255,0,${location.food})`
+        ctx.fillRect(x, y, xFactor, yFactor);
+        if (location.agent_id) {
+            ctx.beginPath();
+            ctx.arc(x + xFactor/2, y + yFactor/2, xFactor/4, 0, 2 * Math.PI, false);
+            ctx.fillStyle = 'black';
+            ctx.fill();
         }
-        const html = [];
-        locations.forEach(row => {
-            html.push(row.map(cell => `<div id="${cell.id}" style="background-color: rgba(0,255,0,${cell.food})">${cell.agent_id !== undefined ? '&#128017;' : ''}</div>`).join(''));
-        });
-        grid.innerHTML = html.join('\n');
+    }
+
+    function render(data) {
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        for (let location of Object.values(data.locations)) {
+            drawLocation(location);
+        }
     }
 
     fetch('/metadata.json')

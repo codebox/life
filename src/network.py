@@ -28,7 +28,7 @@ class Network:
         r3 = r2.dot(self.w2) + self.b2
         return self._softmax(r3,1).tolist()
 
-    def copy(self, delta=0.01):
+    def copy(self, delta=0.1):
         copy_network = Network(self.input_size, self.hidden_layer_size, self.output_size)
         copy_network.w1 = self.w1 + np.random.randn(self.input_size, self.hidden_layer_size) * delta
         copy_network.w2 = self.w2 + np.random.randn(self.hidden_layer_size, self.output_size) * delta

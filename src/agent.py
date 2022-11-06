@@ -43,7 +43,7 @@ class AgentMaxFood(Agent):
 
 
 class AgentNetwork(Agent):
-    def __init__(self, id, network=Network(9, 10, 6)):
+    def __init__(self, id, network=Network(9, 10, 4)):
         super().__init__(id)
         self.network = network
 
