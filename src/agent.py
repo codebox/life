@@ -1,53 +1,50 @@
-from abc import ABC, abstractmethod
-from random import choice
-from environment import *
-from network import Network
 import numpy as np
 
-class Agent(ABC):
-    def __init__(self, id):
+
+class Agent:
+    def __init__(self, id, network, actions):
+        assert len(actions) == network.output_size
         self.id = id
-
-    @abstractmethod
-    def act(self, state_view, actions):
-        return
-
-    def __str__(self):
-        return str(self.id)
-
-
-class AgentRandom(Agent):
-    def __init__(self, id):
-        super().__init__(id)
-
-    def act(self, state_view, actions):
-        return choice(actions)
-
-
-class AgentMaxFood(Agent):
-    def __init__(self, id):
-        super().__init__(id)
-
-    def act(self, state_view, actions):
-        if state_view[VIEW_ENERGY] > 1.5:
-            return ACTION_REPRODUCE
-
-        food = {k: state_view[k] for k in [VIEW_FOOD_NORTH, VIEW_FOOD_SOUTH, VIEW_FOOD_EAST, VIEW_FOOD_WEST]}
-        max_food = max(food, key=food.get)
-        return {
-            VIEW_FOOD_NORTH: ACTION_MOVE_NORTH,
-            VIEW_FOOD_SOUTH: ACTION_MOVE_SOUTH,
-            VIEW_FOOD_WEST: ACTION_MOVE_WEST,
-            VIEW_FOOD_EAST: ACTION_MOVE_EAST
-        }[max_food]
-
-
-class AgentNetwork(Agent):
-    def __init__(self, id, network=Network(9, 10, 4)):
-        super().__init__(id)
         self.network = network
+        self.actions = actions
+        self.state = {}
 
-    def act(self, state_view, actions):
+    def act(self, state_view):
         l = list(state_view.values())
         r = np.argmax(self.network.calc([l]))
-        return actions[r]
+        return self.actions[r]
+
+
+class Network:
+    def __init__(self, input_size, hidden_layer_size, output_size):
+        self.input_size = input_size
+        self.hidden_layer_size = hidden_layer_size
+        self.output_size = output_size
+        self.w1 = np.random.randn(input_size, hidden_layer_size)
+        self.w2 = np.random.randn(hidden_layer_size, output_size)
+        self.b1 = np.random.randn(self.w1.shape[1], )
+        self.b2 = np.random.randn(self.w2.shape[1], )
+
+    def _relu(self, x):
+        return np.maximum(0, x)
+
+    def _softmax(self, x, axis=None):
+        x = x - x.max(axis=axis, keepdims=True)
+        y = np.exp(x)
+        return y / y.sum(axis=axis, keepdims=True)
+
+    def calc(self, input_values):
+        x = np.array(input_values)
+        r1 = x.dot(self.w1) + self.b1
+        r2 = self._relu(r1)
+
+        r3 = r2.dot(self.w2) + self.b2
+        return self._softmax(r3,1).tolist()
+
+    def copy(self, delta=0.1):
+        copy_network = Network(self.input_size, self.hidden_layer_size, self.output_size)
+        copy_network.w1 = self.w1 + np.random.randn(self.input_size, self.hidden_layer_size) * delta
+        copy_network.w2 = self.w2 + np.random.randn(self.hidden_layer_size, self.output_size) * delta
+        copy_network.b1 = self.b1 + np.random.randn(self.w1.shape[1]) * delta
+        copy_network.b2 = self.b2 + np.random.randn(self.w2.shape[1]) * delta
+        return copy_network

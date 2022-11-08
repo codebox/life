@@ -1,6 +1,8 @@
 *.pyc
 *.iml
 .idea
+*.p
 ENV
 public/state.json
 public/metadata.json
+old_src

@@ -1,24 +1,33 @@
-from time import sleep
+from environment import Environment
 from population import Population
-from environment import Environment2D
-from reaper import Reaper
-from agent import AgentRandom, AgentMaxFood
+from persist import dump_environment
 
-GRID_SIZE = 40
-POPULATION_SIZE = 100
-MUTATION_FACTOR = 0.005
-population = Population(POPULATION_SIZE, MUTATION_FACTOR)
-environment = Environment2D(GRID_SIZE, GRID_SIZE, population)
-reaper = Reaper(0.5, environment)
-actions = environment.get_actions()
-environment.save_metadata()
+config = {
+    'population_size': 10,
+    'hidden_layer_size': 10,
+    'network_mutation_rate': 0.01,
+    'actions': ['move_north', 'move_south', 'move_west', 'move_east'],
+    'ui_update_rate': 10,
+    'view_attributes': ['energy', 'nr', 'ng', 'nb', 'sr', 'sg', 'sb', 'wr', 'wg', 'wb', 'er', 'eg', 'eb'],
+    'grid_width': 40,
+    'grid_height': 40,
+    'agent_initial_energy': 1
+}
 
-while True:
-    for agent in population.get_all():
-        view = environment.get_view(agent)
-        action = agent.act(view, actions)
-        environment.update(agent, action)
+population = Population(config)
+environment = Environment(config, population)
+i = 0
 
-    environment.tick(reaper)
-    # sleep(0.01)
+while population.size():
+    agent = population.get_random_agent()
+    view = environment.get_view(agent)
+    action = agent.act(view)
+    environment.update(agent, action)
 
+    if i % config['ui_update_rate']:
+        dump_environment(environment)
+
+    i += 1
+
+dump_environment(environment)
+print('Population 0')
