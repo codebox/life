@@ -10,6 +10,8 @@ config = {
     'network_mutation_rate': 0.01,
     'actions': ['move_north', 'move_south', 'move_west', 'move_east', 'reproduce'],
     'ui_update_seconds': 1,
+    'environment_tick_seconds': 1,
+    'environment_regeneration_rate': 0.05,
     'view_attributes': ['energy', 'nr', 'ng', 'nb', 'sr', 'sg', 'sb', 'wr', 'wg', 'wb', 'er', 'eg', 'eb'],
     'grid_width': 40,
     'grid_height': 40,
@@ -25,7 +27,8 @@ config = {
 population = Population(config)
 environment = Environment(config, population)
 i = 0
-t = time()
+last_ui_update = time()
+last_environment_tick = time()
 
 log.info('Starting population {}'.format(population.size()))
 while population.size():
@@ -34,12 +37,16 @@ while population.size():
     action = agent.act(view)
     environment.update(agent, action)
 
-    if time() - t > config['ui_update_seconds']:
+    if time() - last_ui_update > config['ui_update_seconds']:
         dump_environment(environment)
         log.info('Action {}'.format(i))
-        t = time()
+        last_ui_update = time()
 
-    sleep(0.01)
+    if time() - last_environment_tick > config['environment_tick_seconds']:
+        environment.tick()
+        last_environment_tick = time()
+
+    sleep(0.001)
     i += 1
 
 dump_environment(environment)

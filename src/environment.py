@@ -127,6 +127,13 @@ class Environment:
             self.population.remove_agent(agent)
             self._remove_agent_from_cell(agent)
 
+    def tick(self):
+        def regrow_food(cell):
+            current_food = cell['food']
+            cell['food'] = min(1, current_food + self.config['environment_regeneration_rate'])
+
+        self.grid.for_each_cell(regrow_food)
+
 class Grid:
     def __init__(self, width, height, fn_init_cell):
         self.width = width
@@ -136,6 +143,11 @@ class Grid:
     def get(self, x, y):
         if 0 <= x < self.width and 0 <= y < self.height:
             return self.cells[y][x]
+
+    def for_each_cell(self, fn):
+        for y in range(self.height):
+            for x in range(self.width):
+                fn(self.cells[y][x])
 
     def get_random(self):
         return self.get(randint(0, self.width-1), randint(0, self.height-1))
