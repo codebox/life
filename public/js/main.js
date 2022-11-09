@@ -20,7 +20,7 @@ window.onload = () => {
             y = location.y * yFactor;
         ctx.fillStyle = `rgba(0,255,0,${location.food})`
         ctx.fillRect(x, y, xFactor, yFactor);
-        if (location.agent_id) {
+        if (location.agent) {
             ctx.beginPath();
             ctx.arc(x + xFactor/2, y + yFactor/2, xFactor/4, 0, 2 * Math.PI, false);
             ctx.fillStyle = 'black';
@@ -30,10 +30,8 @@ window.onload = () => {
 
     function render(data) {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        for (let location of Object.values(data.locations)) {
-            drawLocation(location);
-        }
-        elStatus.innerHTML = `Generation ${data.generation}`;
+        data.locations.forEach(drawLocation);
+        elStatus.innerHTML = `Population ${data.population}`;
     }
 
     fetch('/metadata.json')
