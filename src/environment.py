@@ -10,7 +10,7 @@ class Environment:
         self._populate_grid_with_agents()
 
     def _init_cell(self, cell):
-        cell['food'] = random()
+        cell['food'] = self.config['cell_min_init_energy'] + random() * (1 - self.config['cell_min_init_energy'])
         return cell
 
     def _populate_grid_with_agents(self):
@@ -74,14 +74,19 @@ class Environment:
 
         if new_cell and 'agent' not in new_cell:
             self._put_agent_in_cell(agent, new_cell)
-            energy_gain = new_cell['food']
-            new_cell['food'] = 0
             energy_cost = self.config['agent_energy']['move_success']
         else:
-            energy_gain = 0
             energy_cost = self.config['agent_energy']['move_fail']
 
-        agent.state['energy'] += (energy_gain - energy_cost)
+        agent.state['energy'] -= energy_cost
+
+    def _attempt_eat(self, agent):
+        x = agent.state['x']
+        y = agent.state['y']
+        cell = self.grid.get(x, y)
+        energy_gain = cell['food']
+        cell['food'] = 0
+        agent.state['energy'] += energy_gain
 
     def _attempt_reproduce(self, parent):
         success = False
@@ -121,18 +126,29 @@ class Environment:
             self._attempt_move(agent, x + 1, y)
         elif action == 'reproduce':
             self._attempt_reproduce(agent)
+        elif action == 'eat':
+            self._attempt_eat(agent)
 
+        self._check_for_agent_death(agent)
+
+    def _check_for_agent_death(self, agent):
         if agent.state['energy'] <= 0:
             log.info('Agent {} died'.format(agent.id))
             self.population.remove_agent(agent)
             self._remove_agent_from_cell(agent)
 
-    def tick(self):
+    def tick(self, elapsed_time_seconds):
         def regrow_food(cell):
             current_food = cell['food']
-            cell['food'] = min(1, current_food + self.config['environment_regeneration_rate'])
+            cell['food'] = min(1, current_food + self.config['environment_regeneration_rate'] * elapsed_time_seconds)
 
         self.grid.for_each_cell(regrow_food)
+
+        for agent in self.population.agents:
+            old_energy = agent.state['energy']
+            new_energy = old_energy - self.config['agent_energy']['loss_per_second'] * elapsed_time_seconds
+            agent.state['energy'] = new_energy
+            self._check_for_agent_death(agent)
 
 class Grid:
     def __init__(self, width, height, fn_init_cell):
