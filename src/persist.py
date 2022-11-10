@@ -1,4 +1,6 @@
-import json, math
+import json, math, pickle, os.path
+from pathlib import Path
+
 
 def get_agent_colour(agent):
     energy_factor = min(1, agent.state['energy'])
@@ -25,3 +27,13 @@ def dump_environment(environment):
 def dump_metadata(environment):
     with open('public/metadata.json', 'w') as f:
         json.dump({'h': environment.grid.height, 'w': environment.grid.width}, f)
+
+modeL_save_dir = 'save'
+environment_save_file = '{}/environment.p'.format(modeL_save_dir)
+def save_environment(environment):
+    [f.unlink() for f in Path(modeL_save_dir).glob("*.p")]
+    pickle.dump(environment, open(environment_save_file, "wb"))
+
+def load_environment():
+    if os.path.exists(environment_save_file):
+        return pickle.load(open(environment_save_file, "rb"))

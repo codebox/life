@@ -1,8 +1,9 @@
 from environment import Environment
 from population import Population
-from persist import dump_environment, dump_metadata
+from persist import dump_environment, dump_metadata, load_environment, save_environment
 from logger import log
 from time import time, sleep
+import signal, sys
 
 config = {
     'population_size': 2000,
@@ -27,8 +28,20 @@ config = {
     }
 }
 
-population = Population(config)
-environment = Environment(config, population)
+def signal_handler(sig, frame):
+    save_environment(environment)
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
+persisted_environment = load_environment()
+if persisted_environment:
+    environment = persisted_environment
+    population = environment.population
+else:
+    population = Population(config)
+    environment = Environment(config, population)
+
 dump_metadata(environment)
 i = 0
 last_ui_update = time()

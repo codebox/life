@@ -51,7 +51,6 @@ window.onload = () => {
         setInterval(getNewState, 1000);
         getNewState();
     }
-
 };
 
 
