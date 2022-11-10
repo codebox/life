@@ -8,6 +8,9 @@ class Population:
         self.next_agent_id = 1
         self.agents = [self._build_new_agent() for _ in range(config['population_size'])]
 
+    def get_agent_by_id(self, id):
+        return next((agent for agent in self.agents if agent.id == id), None)
+
     def get_random_agent(self):
         return choice(self.agents)
 

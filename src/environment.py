@@ -85,8 +85,11 @@ class Environment:
         y = agent.state['y']
         cell = self.grid.get(x, y)
         energy_gain = cell['food']
-        cell['food'] = 0
-        agent.state['energy'] += energy_gain
+        if energy_gain > 0:
+            cell['food'] = 0
+            agent.state['energy'] += energy_gain
+        else:
+            agent.state['energy'] -= self.config['agent_energy']['eat_fail']
 
     def _attempt_reproduce(self, parent):
         success = False
@@ -113,6 +116,7 @@ class Environment:
             parent.state['energy'] -= self.config['agent_energy']['reproduce_fail']
 
     def update(self, agent, action):
+        # log.info('Agent {} {}'.format(agent.id, action))
         x = agent.state['x']
         y = agent.state['y']
 

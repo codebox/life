@@ -5,9 +5,9 @@ from logger import log
 from time import time, sleep
 
 config = {
-    'population_size': 1000,
+    'population_size': 2000,
     'hidden_layer_size': 10,
-    'network_mutation_rate': 0.1,
+    'network_mutation_rate': 0.03,
     'actions': ['move_north', 'move_south', 'move_west', 'move_east', 'eat', 'reproduce'],
     'ui_update_seconds': 1,
     'environment_tick_seconds': 1,
@@ -22,7 +22,8 @@ config = {
         'reproduce_fail': 0.01,
         'move_success': 0.00,
         'move_fail': 0.01,
-        'loss_per_second': 0.05
+        'loss_per_second': 0.01,
+        'eat_fail': 0.01
     }
 }
 
@@ -42,7 +43,7 @@ while population.size():
 
     if time() - last_ui_update > config['ui_update_seconds']:
         dump_environment(environment)
-        log.info('Action {}'.format(i))
+        # log.info('Action {}'.format(i))
         last_ui_update = time()
 
     elapsed_time_seconds = time() - last_environment_tick

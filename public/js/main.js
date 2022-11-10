@@ -18,12 +18,13 @@ window.onload = () => {
     function drawLocation(location) {
         const x = location.x * xFactor,
             y = location.y * yFactor;
-        ctx.fillStyle = `rgba(0,255,0,${location.food})`
+        ctx.fillStyle = `rgba(200,200,200,${location.food})`
         ctx.fillRect(x, y, xFactor, yFactor);
         if (location.agent) {
+            const colour = location.agent.colour;
             ctx.beginPath();
-            ctx.arc(x + xFactor/2, y + yFactor/2, xFactor/4, 0, 2 * Math.PI, false);
-            ctx.fillStyle = 'black';
+            ctx.arc(x + xFactor/2, y + yFactor/2, xFactor/3, 0, 2 * Math.PI, false);
+            ctx.fillStyle = colour;
             ctx.fill();
         }
     }
