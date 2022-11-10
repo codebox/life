@@ -7,6 +7,8 @@ window.onload = () => {
         canvasWidth = canvas.width,
         canvasHeight = canvas.height;
 
+    ctx.font = '8px sans-serif';
+
     let gridWidth, gridHeight, xFactor, yFactor;
     function uiSetup(metadata) {
         gridWidth = metadata.w;
@@ -15,7 +17,7 @@ window.onload = () => {
         yFactor = canvasHeight / gridHeight;
     }
 
-    function drawLocation(location) {
+    function drawLocation(location, showAgentIds) {
         const x = location.x * xFactor,
             y = location.y * yFactor;
         ctx.fillStyle = `rgba(200,200,200,${location.food})`
@@ -26,12 +28,16 @@ window.onload = () => {
             ctx.arc(x + xFactor/2, y + yFactor/2, xFactor/3, 0, 2 * Math.PI, false);
             ctx.fillStyle = colour;
             ctx.fill();
+            if (showAgentIds) {
+                ctx.fillText(location.agent.id, x + xFactor / 2 + 5, y + yFactor / 2 - 5)
+            }
         }
     }
 
     function render(data) {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        data.locations.forEach(drawLocation);
+        const agentCount = data.locations.filter(l => l.agent).length;
+        data.locations.forEach(location => drawLocation(location, agentCount < 100));
         elStatus.innerHTML = `Population ${data.population}`;
     }
 

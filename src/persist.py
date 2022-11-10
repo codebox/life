@@ -17,7 +17,7 @@ def dump_environment(environment):
         details = dict(cell)
         if 'agent' in cell:
             agent = environment.population.get_agent_by_id(cell['agent'])
-            details['agent'] = {'colour': get_agent_colour(agent)}
+            details['agent'] = {'colour': get_agent_colour(agent), 'id': cell['agent']}
         return details
 
     with open('public/state.json', 'w') as f:

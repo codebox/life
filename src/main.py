@@ -38,6 +38,7 @@ persisted_environment = load_environment()
 if persisted_environment:
     environment = persisted_environment
     population = environment.population
+    config = environment.config
 else:
     population = Population(config)
     environment = Environment(config, population)
