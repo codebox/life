@@ -8,6 +8,7 @@ class Environment:
         self.population = population
         self.grid = Grid(config['grid_width'], config['grid_height'], self._init_cell)
         self._populate_grid_with_agents()
+        self.updates = 0
 
     def _init_cell(self, cell):
         cell['food'] = self.config['cell_min_init_energy'] + random() * (1 - self.config['cell_min_init_energy'])
@@ -134,6 +135,7 @@ class Environment:
             self._attempt_eat(agent)
 
         self._check_for_agent_death(agent)
+        self.updates += 1
 
     def _check_for_agent_death(self, agent):
         if agent.state['energy'] <= 0:

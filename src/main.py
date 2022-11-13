@@ -6,8 +6,8 @@ from time import time, sleep
 import signal, sys
 
 config = {
-    'population_size': 2000,
-    'hidden_layer_size': 10,
+    'population_size': 4000,
+    'hidden_layer_size': 100,
     'network_mutation_rate': 0.03,
     'actions': ['move_north', 'move_south', 'move_west', 'move_east', 'eat', 'reproduce'],
     'ui_update_seconds': 1,
@@ -34,39 +34,60 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+agent_id = None
+if len(sys.argv) > 1:
+    agent_id = int(sys.argv[1])
+
 persisted_environment = load_environment()
 if persisted_environment:
     environment = persisted_environment
     population = environment.population
+    if agent_id:
+        agent_with_id = population.get_agent_by_id(agent_id)
+        for agent in population.agents:
+            population.remove_agent(agent)
+            environment._remove_agent_from_cell(agent)
+
+        for i in range(100):
+            new_agent = population.add_new_agent()
+            new_agent.network = agent_with_id.network.copy(0)
+
+        environment._populate_grid_with_agents()
+
     config = environment.config
 else:
     population = Population(config)
     environment = Environment(config, population)
 
 dump_metadata(environment)
-i = 0
-last_ui_update = time()
-last_environment_tick = time()
 
-log.info('Starting population {}'.format(population.size()))
-while population.size():
-    agent = population.get_random_agent()
-    view = environment.get_view(agent)
-    action = agent.act(view)
-    environment.update(agent, action)
+min_population=100
+while True:
+    last_ui_update = time()
+    last_environment_tick = time()
 
-    if time() - last_ui_update > config['ui_update_seconds']:
-        dump_environment(environment)
-        # log.info('Action {}'.format(i))
-        last_ui_update = time()
+    log.info('Starting population {}'.format(population.size()))
+    while population.size() > min_population:
+        agent = population.get_random_agent()
+        view = environment.get_view(agent)
+        action = agent.act(view)
+        environment.update(agent, action)
 
-    elapsed_time_seconds = time() - last_environment_tick
-    if elapsed_time_seconds > config['environment_tick_seconds']:
-        environment.tick(elapsed_time_seconds)
-        last_environment_tick = time()
+        if time() - last_ui_update > config['ui_update_seconds']:
+            dump_environment(environment)
+            # log.info('Action {}'.format(i))
+            last_ui_update = time()
 
-    # sleep(0.001)
-    i += 1
+        elapsed_time_seconds = time() - last_environment_tick
+        if elapsed_time_seconds > config['environment_tick_seconds']:
+            environment.tick(elapsed_time_seconds)
+            last_environment_tick = time()
 
-dump_environment(environment)
-log.info('Finished, population is 0')
+        # sleep(1)
+
+    dump_environment(environment)
+    log.info('Finished, population is {}'.format(min_population))
+
+    population = Population(config)
+    environment = Environment(config, population)
+

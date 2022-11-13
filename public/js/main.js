@@ -38,7 +38,7 @@ window.onload = () => {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         const agentCount = data.locations.filter(l => l.agent).length;
         data.locations.forEach(location => drawLocation(location, agentCount < 100));
-        elStatus.innerHTML = `Population ${data.population}`;
+        elStatus.innerHTML = `Population ${data.population}<br>Age ${Math.round(data.age/1000)}k`;
     }
 
     fetch('/metadata.json')
