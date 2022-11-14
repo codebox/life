@@ -143,16 +143,16 @@ class Environment:
             self.population.remove_agent(agent)
             self._remove_agent_from_cell(agent)
 
-    def tick(self, elapsed_time_seconds):
+    def tick(self, elapsed_updates):
         def regrow_food(cell):
             current_food = cell['food']
-            cell['food'] = min(1, current_food + self.config['environment_regeneration_rate'] * elapsed_time_seconds)
+            cell['food'] = min(1, current_food + self.config['environment_regeneration_rate'] * elapsed_updates)
 
         self.grid.for_each_cell(regrow_food)
 
         for agent in self.population.agents:
             old_energy = agent.state['energy']
-            new_energy = old_energy - self.config['agent_energy']['loss_per_second'] * elapsed_time_seconds
+            new_energy = old_energy - self.config['agent_energy']['loss_per_update'] * elapsed_updates
             agent.state['energy'] = new_energy
             self._check_for_agent_death(agent)
 

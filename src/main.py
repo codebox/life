@@ -7,12 +7,12 @@ import signal, sys
 
 config = {
     'population_size': 4000,
-    'hidden_layer_size': 100,
+    'hidden_layer_size': 1000,
     'network_mutation_rate': 0.03,
     'actions': ['move_north', 'move_south', 'move_west', 'move_east', 'eat', 'reproduce'],
     'ui_update_seconds': 1,
-    'environment_tick_seconds': 1,
-    'environment_regeneration_rate': 0.01,
+    'environment_tick_updates': 5000,
+    'environment_regeneration_rate': 0.0000003,
     'view_attributes': ['energy', 'nr', 'ng', 'nb', 'sr', 'sg', 'sb', 'wr', 'wg', 'wb', 'er', 'eg', 'eb'],
     'grid_width': 100,
     'grid_height': 100,
@@ -23,7 +23,7 @@ config = {
         'reproduce_fail': 0.01,
         'move_success': 0.00,
         'move_fail': 0.01,
-        'loss_per_second': 0.01,
+        'loss_per_update': 0.000001,
         'eat_fail': 0.01
     }
 }
@@ -61,10 +61,10 @@ else:
 
 dump_metadata(environment)
 
-min_population=100
+min_population=10
 while True:
     last_ui_update = time()
-    last_environment_tick = time()
+    last_environment_update = 0
 
     log.info('Starting population {}'.format(population.size()))
     while population.size() > min_population:
@@ -78,10 +78,10 @@ while True:
             # log.info('Action {}'.format(i))
             last_ui_update = time()
 
-        elapsed_time_seconds = time() - last_environment_tick
-        if elapsed_time_seconds > config['environment_tick_seconds']:
-            environment.tick(elapsed_time_seconds)
-            last_environment_tick = time()
+        elapsed_updates = environment.updates - last_environment_update
+        if elapsed_updates > config['environment_tick_updates']:
+            environment.tick(elapsed_updates)
+            last_environment_update = environment.updates
 
         # sleep(1)
 

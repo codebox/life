@@ -31,7 +31,7 @@ def dump_metadata(environment):
 modeL_save_dir = 'save'
 environment_save_file = '{}/environment.p'.format(modeL_save_dir)
 def save_environment(environment):
-    [f.unlink() for f in Path(modeL_save_dir).glob("*.p")]
+    # [f.unlink() for f in Path(modeL_save_dir).glob("*.p")]
     pickle.dump(environment, open(environment_save_file, "wb"))
 
 def load_environment():
