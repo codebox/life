@@ -1,39 +1,36 @@
-import json, math, pickle, os.path
-from pathlib import Path
+import json
 
 
-def get_agent_colour(agent):
-    energy_factor = min(1, agent.state['energy'])
-    inputs = [1] * agent.network.input_size
-    result = agent.network.calc([inputs])[0]
-    hue = 0
-    for i, r in enumerate(result):
-        hue += r * i * 360 / len(result)
+class Persistence:
+    def __init__(self, save_location, web_location):
+        self.save_location = save_location
+        self.web_location = web_location
 
-    return 'hsla({}, 100%, 50%, {})'.format(hue, energy_factor)
+    def restore_environment(self):
+        pass
 
-def dump_environment(environment):
-    def get_details(cell):
-        details = dict(cell)
-        if 'agent' in cell:
-            agent = environment.population.get_agent_by_id(cell['agent'])
-            details['agent'] = {'colour': get_agent_colour(agent), 'id': cell['agent']}
-        return details
+    def environment_to_json(self, environment):
+        def get_agent_colour(agent):
+            energy_factor = min(1, agent.energy)
+            inputs = [1] * agent.network.input_size
+            result = agent.network.calc([inputs])[0]
+            hue = 0
+            for i, r in enumerate(result):
+                hue += r * i * 360 / len(result)
 
-    with open('public/state.json', 'w') as f:
-        cells = [get_details(cell) for row in environment.grid.cells for cell in row]
-        json.dump({'locations': cells, 'population': environment.population.size(), 'age': environment.updates}, f)
+            return 'hsla({}, 100%, 50%, {})'.format(hue, energy_factor)
 
-def dump_metadata(environment):
-    with open('public/metadata.json', 'w') as f:
-        json.dump({'h': environment.grid.height, 'w': environment.grid.width}, f)
+        def get_details(cell):
+            details = dict(cell)
+            if 'agent' in cell:
+                agent = environment.population.get_agent_by_id(cell['agent']['id'])
+                details['agent'] = {'colour': get_agent_colour(agent), 'id': cell['agent']['id'], 'type': agent.species_name}
+            return details
 
-modeL_save_dir = 'save'
-environment_save_file = '{}/environment.p'.format(modeL_save_dir)
-def save_environment(environment):
-    # [f.unlink() for f in Path(modeL_save_dir).glob("*.p")]
-    pickle.dump(environment, open(environment_save_file, "wb"))
+        with open('{}/state.json'.format(self.web_location), 'w') as f:
+            cells = [get_details(cell) for row in environment.locations.cells for cell in row]
+            json.dump({'locations': cells, 'population': environment.population.size(), 'age': environment.update_count}, f)
 
-def load_environment():
-    if os.path.exists(environment_save_file):
-        return pickle.load(open(environment_save_file, "rb"))
+    def metadata_to_json(self, environment):
+        with open('{}/metadata.json'.format(self.web_location), 'w') as f:
+            json.dump({'h': environment.locations.height, 'w': environment.locations.width}, f)

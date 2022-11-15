@@ -1,20 +1,6 @@
 import numpy as np
 
 
-class Agent:
-    def __init__(self, id, network, actions):
-        assert len(actions) == network.output_size
-        self.id = id
-        self.network = network
-        self.actions = actions
-        self.state = {}
-
-    def act(self, state_view):
-        l = list(state_view.values())
-        r = np.argmax(self.network.calc([l]))
-        return self.actions[r]
-
-
 class Network:
     def __init__(self, input_size, hidden_layer_size, output_size):
         self.input_size = input_size

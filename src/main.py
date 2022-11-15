@@ -1,93 +1,114 @@
+from persist import Persistence
 from environment import Environment
-from population import Population
-from persist import dump_environment, dump_metadata, load_environment, save_environment
-from logger import log
-from time import time, sleep
-import signal, sys
+from random import random, shuffle
+from time import time
+
 
 config = {
-    'population_size': 4000,
-    'hidden_layer_size': 1000,
-    'network_mutation_rate': 0.03,
-    'actions': ['move_north', 'move_south', 'move_west', 'move_east', 'eat', 'reproduce'],
-    'ui_update_seconds': 1,
-    'environment_tick_updates': 5000,
-    'environment_regeneration_rate': 0.0000003,
-    'view_attributes': ['energy', 'nr', 'ng', 'nb', 'sr', 'sg', 'sb', 'wr', 'wg', 'wb', 'er', 'eg', 'eb'],
-    'grid_width': 100,
-    'grid_height': 100,
-    'cell_min_init_energy': 0.5,
-    'agent_energy': {
-        'initial': 1,
-        'reproduce': 1.1,
-        'reproduce_fail': 0.01,
-        'move_success': 0.00,
-        'move_fail': 0.01,
-        'loss_per_update': 0.000001,
-        'eat_fail': 0.01
-    }
+    'save_location': 'save',
+    'web_location': 'public',
+    'locations': {
+        'width': 100,
+        'height': 100
+    },
+    'population': {
+        'species': {
+            'herbivore': {
+                'count': 1000,
+                'hidden_layer_size': 10,
+                'energy': {
+                    'initial': 1,
+                    'move_success': 0,
+                    'move_fail': 0.01,
+                    'eat_fail': 0.01,
+                    'reproduce_min': 1,
+                    'reproduce_fail': 0.01,
+                    'ageing': 0.001
+                }
+            },
+            'carnivore': {
+                'count': 1000,
+                'hidden_layer_size': 100,
+                'energy': {
+                    'initial': 1,
+                    'move_success': 0,
+                    'move_fail': 0.01,
+                    'eat_success': 0,
+                    'eat_fail': 0.01,
+                    'reproduce_fail': 0.01,
+                    'ageing': 0.001
+                }
+            },
+        },
+        'minimum': 2,
+        'network_mutation_rate': 0.03,
+    },
+    'food': {
+        'regrow_interval': 1000,
+        'regrow_amount': 0.0003,
+        'initial_max': 1,
+        'initial_min': 0.2,
+        'max': 1,
+    },
 }
 
-def signal_handler(sig, frame):
-    save_environment(environment)
-    sys.exit(0)
 
-signal.signal(signal.SIGINT, signal_handler)
+def init_locations_with_random_food(environment):
+    def init_food(location):
+        location['food'] = config['food']['initial_min'] + random() * (config['food']['initial_max'] - config['food']['initial_min'])
 
-agent_id = None
-if len(sys.argv) > 1:
-    agent_id = int(sys.argv[1])
+    environment.locations.for_each_location(init_food)
 
-persisted_environment = load_environment()
-if persisted_environment:
-    environment = persisted_environment
+def place_agents_randomly(environment):
+    for agent, location in zip(environment.population.agents, environment.locations.get_locations_in_random_order()):
+        agent.coords = location['coords']
+        location['agent'] = {'id': agent.id, 'type': agent.species_name}
+
+def agents_with_zero_energy_are_removed(environment, agent, _):
+    if agent.energy <= 0:
+        environment.remove_agent(agent)
+
+def food_regrows(environment, _1, _2):
+    def regrow_food(loc):
+        loc['food'] = min(config['food']['max'], loc['food'] + config['food']['regrow_amount'])
+
+    if environment.update_count % config['food']['regrow_interval'] == 0:
+        environment.locations.for_each_location(regrow_food)
+
+def run(environment, persist):
     population = environment.population
-    if agent_id:
-        agent_with_id = population.get_agent_by_id(agent_id)
-        for agent in population.agents:
-            population.remove_agent(agent)
-            environment._remove_agent_from_cell(agent)
+    persist.environment_to_json(environment)
+    last_save = time()
 
-        for i in range(100):
-            new_agent = population.add_new_agent()
-            new_agent.network = agent_with_id.network.copy(0)
-
-        environment._populate_grid_with_agents()
-
-    config = environment.config
-else:
-    population = Population(config)
-    environment = Environment(config, population)
-
-dump_metadata(environment)
-
-min_population=10
-while True:
-    last_ui_update = time()
-    last_environment_update = 0
-
-    log.info('Starting population {}'.format(population.size()))
-    while population.size() > min_population:
+    while population.is_viable():
         agent = population.get_random_agent()
-        view = environment.get_view(agent)
+        view = agent.view(environment)
         action = agent.act(view)
         environment.update(agent, action)
+        if time() - last_save > 1:
+            last_save = time()
+            persist.environment_to_json(environment)
 
-        if time() - last_ui_update > config['ui_update_seconds']:
-            dump_environment(environment)
-            # log.info('Action {}'.format(i))
-            last_ui_update = time()
+    persist.environment_to_json(environment)
+    print('Stopped, population size = {}'.format(len(population.agents)))
 
-        elapsed_updates = environment.updates - last_environment_update
-        if elapsed_updates > config['environment_tick_updates']:
-            environment.tick(elapsed_updates)
-            last_environment_update = environment.updates
 
-        # sleep(1)
+if __name__ == '__main__':
+    persist = Persistence(config['save_location'], config['web_location'])
 
-    dump_environment(environment)
-    log.info('Finished, population is {}'.format(min_population))
+    environment = persist.restore_environment()
+    if environment:
+        run(environment, persist)
+    else:
+        while True:
+            environment = Environment(config, [
+                init_locations_with_random_food,
+                place_agents_randomly
+            ], [
+                agents_with_zero_energy_are_removed,
+                food_regrows
+            ])
+            run(environment, persist)
 
-    population = Population(config)
-    environment = Environment(config, population)
+
 

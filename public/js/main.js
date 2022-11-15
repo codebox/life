@@ -18,18 +18,28 @@ window.onload = () => {
     }
 
     function drawLocation(location, showAgentIds) {
-        const x = location.x * xFactor,
-            y = location.y * yFactor;
+        const x = location.coords.x * xFactor,
+            y = location.coords.y * yFactor;
         ctx.fillStyle = `rgba(200,200,200,${location.food})`
         ctx.fillRect(x, y, xFactor, yFactor);
         if (location.agent) {
             const colour = location.agent.colour;
-            ctx.beginPath();
-            ctx.arc(x + xFactor/2, y + yFactor/2, xFactor/3, 0, 2 * Math.PI, false);
-            ctx.fillStyle = colour;
-            ctx.fill();
+            if (location.agent.type === 'herbivore') {
+                ctx.beginPath();
+                ctx.arc(x + xFactor / 2, y + yFactor / 2, xFactor / 3, 0, 2 * Math.PI, false);
+                ctx.fillStyle = colour;
+                ctx.fill();
+            } else if (location.agent.type === 'carnivore') {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + xFactor, y + yFactor);
+                ctx.moveTo(x, y + yFactor);
+                ctx.lineTo(x + xFactor, y);
+                ctx.strokeStyle = colour;
+                ctx.stroke();
+            }
             if (showAgentIds) {
-                ctx.fillText(location.agent.id, x + xFactor / 2 + 5, y + yFactor / 2 - 5)
+                ctx.fillText(location.agent.id, x + xFactor / 2 + 5, y + yFactor / 2 - 5);
             }
         }
     }
