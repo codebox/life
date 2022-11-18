@@ -16,10 +16,10 @@ class ViewAttributes(Enum):
 
 
 class Actions(Enum):
-    MOVE_NORTH = 1
-    MOVE_SOUTH = 2
-    MOVE_EAST = 3
-    MOVE_WEST = 4
+    # MOVE_NORTH = 1
+    # MOVE_SOUTH = 2
+    # MOVE_EAST = 3
+    # MOVE_WEST = 4
     EAT_NORTH = 5
     EAT_SOUTH = 6
     EAT_EAST = 7
@@ -69,15 +69,28 @@ class Carnivore(Agent):
         self.energy -= energy_cost
 
     def _attempt_eat(self, environment, x, y):
-        prey_location = environment.locations.get(x, y)
+        new_location = environment.locations.get(x, y)
+        success = False
 
-        if prey_location and 'agent' in prey_location and prey_location['agent']['type'] == 'herbivore':
-            prey_agent = environment.population.get_agent_by_id(prey_location['agent']['id'])
-            environment.remove_agent(prey_agent)
-            environment.move_agent_to_location(self, prey_location)
-            energy_gain = prey_agent.energy
-            energy_cost = self.config['energy']['eat_success']
-        else:
+        if new_location:
+            location_vacant = 'agent' not in new_location
+            prey_in_location = 'agent' in new_location and new_location['agent']['type'] == 'herbivore'
+
+            if prey_in_location:
+                prey_agent = environment.population.get_agent_by_id(new_location['agent']['id'])
+                environment.remove_agent(prey_agent)
+                energy_gain = prey_agent.energy
+                energy_cost = self.config['energy']['eat_success']
+                # print('NOM ' + str(prey_agent.id))
+            else:
+                energy_gain = 0
+                energy_cost = self.config['energy']['move_success']
+
+            if location_vacant or prey_in_location:
+                environment.move_agent_to_location(self, new_location)
+                success = True
+
+        if not success:
             energy_gain = 0
             energy_cost = self.config['energy']['eat_fail']
 
@@ -85,7 +98,7 @@ class Carnivore(Agent):
 
     def _attempt_reproduce(self, environment):
         success = False
-        energy_transfer = self.config['energy']['initial']
+        energy_transfer = self.config['energy']['reproduce_min']
         if self.energy > energy_transfer:
             x = self.coords['x']
             y = self.coords['y']
@@ -110,16 +123,16 @@ class Carnivore(Agent):
         x = self.coords['x']
         y = self.coords['y']
 
-        if action == Actions.MOVE_NORTH:
-            self._attempt_move(environment, x, y - 1)
-        elif action == Actions.MOVE_SOUTH:
-            self._attempt_move(environment, x, y + 1)
-        elif action == Actions.MOVE_EAST:
-            self._attempt_move(environment, x + 1, y)
-        elif action == Actions.MOVE_WEST:
-            self._attempt_move(environment, x - 1, y)
+        # if action == Actions.MOVE_NORTH:
+        #     self._attempt_move(environment, x, y - 1)
+        # elif action == Actions.MOVE_SOUTH:
+        #     self._attempt_move(environment, x, y + 1)
+        # elif action == Actions.MOVE_EAST:
+        #     self._attempt_move(environment, x + 1, y)
+        # elif action == Actions.MOVE_WEST:
+        #     self._attempt_move(environment, x - 1, y)
 
-        elif action == Actions.EAT_NORTH:
+        if action == Actions.EAT_NORTH:
             self._attempt_eat(environment, x, y - 1)
         elif action == Actions.EAT_SOUTH:
             self._attempt_eat(environment, x, y + 1)

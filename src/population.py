@@ -8,8 +8,11 @@ class Population:
         self.config = config
         self.agents = []
         self.next_id = 1
+        self.species_counts = {}
         for species_name in config['species'].keys():
-            self.agents.extend(self._build_agents_of_type(species_name))
+            new_agents = self._build_agents_of_type(species_name)
+            self.agents.extend(new_agents)
+            self.species_counts[species_name] = len(new_agents)
 
     def _build_agents_of_type(self, species_name):
         return [self._build_agent_of_type(species_name) for _ in range(self.config['species'][species_name]['count'])]
@@ -33,7 +36,10 @@ class Population:
         return len(self.agents)
 
     def is_viable(self):
-        return self.size() >= self.config['minimum']
+        is_viable = all(self.species_counts[species_name] >= self.config['minimum'] for species_name in self.config['species'].keys())
+        if not is_viable:
+            print(self.species_counts)
+        return is_viable
 
     def get_random_agent(self):
         return choice(self.agents)
@@ -43,10 +49,12 @@ class Population:
 
     def remove_agent(self, agent):
         self.agents.remove(agent)
+        self.species_counts[agent.species_name] -= 1
 
     def reproduce(self, parent_agent):
         species_name = parent_agent.species_name
         child_agent = self._build_agent_of_type(species_name)
         child_agent.network = parent_agent.network.copy(delta=self.config['network_mutation_rate'])
         self.agents.append(child_agent)
+        self.species_counts[species_name] += 1
         return child_agent

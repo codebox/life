@@ -1,4 +1,4 @@
-import json
+import json, os
 
 
 class Persistence:
@@ -27,9 +27,14 @@ class Persistence:
                 details['agent'] = {'colour': get_agent_colour(agent), 'id': cell['agent']['id'], 'type': agent.species_name}
             return details
 
-        with open('{}/state.json'.format(self.web_location), 'w') as f:
+        with open('{}/state_next.json'.format(self.web_location), 'w') as f:
             cells = [get_details(cell) for row in environment.locations.cells for cell in row]
-            json.dump({'locations': cells, 'population': environment.population.size(), 'age': environment.update_count}, f)
+            json.dump({
+                'locations': cells,
+                'population': environment.population.species_counts,
+                'age': environment.update_count
+            }, f)
+        os.rename('{}/state_next.json'.format(self.web_location), '{}/state.json'.format(self.web_location))
 
     def metadata_to_json(self, environment):
         with open('{}/metadata.json'.format(self.web_location), 'w') as f:
